@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5b1220">
+<meta name="robots" content="noindex">
+<title>قلب المدينة — بطاقة الوجبات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet">
+<script>
+/* ======================= الإعدادات — عدّل هذين السطرين فقط ======================= */
+const SUPABASE_URL = "https://sanvupoolabgftggiati.supabase.co";   // Project Settings → API → Project URL
+const SUPABASE_KEY = "sb_publishable_DzyBNO9y42ZwYkxq5iaUSg_j21cIEiz";               // Project Settings → API Keys → publishable (sb_publishable_...) أو anon public
+/* ================================================================================== */
+</script>
+<style>
+  :root{
+    --wine:#5b1220; --wine-2:#7a1a2c; --cream:#f7efe3; --paper:#fffaf2;
+    --gold:#c9a24a; --ink:#2a1a17; --muted:#8a7468; --ok:#2f7a4b; --bad:#b3261e;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{
+    font-family:"Cairo",system-ui,sans-serif;color:var(--ink);
+    background:var(--cream);
+    background-image:radial-gradient(circle at 100% 0,#efdcc4 0,transparent 55%),radial-gradient(circle at 0 100%,#f1e2cf 0,transparent 50%);
+    display:flex;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px 32px;
+  }
+  .wrap{width:100%;max-width:440px}
+  header{text-align:center;padding:12px 0 18px}
+  .logo{font-family:"Reem Kufi","Cairo",sans-serif;font-size:34px;color:var(--wine);margin:0;letter-spacing:.5px}
+  .logo span{color:var(--gold)}
+  .sub{margin:2px 0 0;color:var(--muted);font-size:14px}
+
+  .card{
+    background:var(--paper);border-radius:22px;padding:22px 20px 24px;
+    box-shadow:0 1px 0 #fff inset,0 12px 30px -12px rgba(91,18,32,.28);
+    border:1px solid #ecdcc6;
+  }
+  .num{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:14px}
+  .num b{color:var(--ink);font-size:16px}
+  .badge{font-size:12px;padding:3px 10px;border-radius:99px;background:#f0e4d3;color:var(--wine)}
+  .badge.staff{background:var(--wine);color:#fff}
+
+  .count{text-align:center;margin:18px 0 6px}
+  .count .big{font-size:88px;line-height:1;font-weight:800;color:var(--wine);font-variant-numeric:tabular-nums;transition:transform .25s}
+  .count .big.bump{transform:scale(.86)}
+  .count .lbl{font-size:17px;color:var(--muted);margin-top:4px}
+  .slots{display:flex;justify-content:center;gap:10px;margin:16px 0 4px;flex-wrap:wrap}
+  .slot{width:34px;height:34px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;transition:all .25s}
+  .slot.full{background:var(--wine);border-color:var(--wine)}
+  .slot.full::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--gold)}
+  .empty-msg{text-align:center;color:var(--bad);font-weight:700;margin-top:10px}
+
+  .actions{margin-top:22px;display:grid;gap:10px}
+  button{font:inherit;border:0;border-radius:16px;cursor:pointer;transition:transform .1s,background .2s,opacity .2s}
+  button:active{transform:scale(.98)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .primary{background:var(--wine);color:#fff;font-size:22px;font-weight:800;padding:20px}
+  .primary.confirm{background:var(--bad)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ghost{background:#f1e6d6;color:var(--wine);font-weight:700;padding:14px;font-size:16px}
+  .link{background:none;color:var(--muted);text-decoration:underline;padding:8px;font-size:14px}
+
+  .refill{display:none;margin-top:4px;background:#f6ecdd;border-radius:16px;padding:14px}
+  .refill.open{display:block}
+  .refill p{margin:0 0 10px;font-weight:600}
+  .steps{display:flex;align-items:center;justify-content:center;gap:16px}
+  .steps button{width:48px;height:48px;font-size:26px;background:#fff;color:var(--wine);font-weight:800}
+  .steps output{font-size:34px;font-weight:800;min-width:56px;text-align:center;color:var(--wine)}
+
+  .history{margin-top:16px;font-size:14px;color:var(--muted);display:none}
+  .history.open{display:block}
+  .history div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e6d6c0}
+
+  .pin{display:grid;gap:12px;margin-top:6px}
+  .pin input{font:inherit;font-size:28px;letter-spacing:10px;text-align:center;padding:14px;border-radius:14px;border:2px solid #e3d1b8;background:#fff;direction:ltr}
+  .pin input:focus{outline:none;border-color:var(--wine)}
+
+  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,120px);
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:14px;font-weight:600;transition:transform .3s;max-width:90vw;text-align:center;z-index:9}
+  .toast.show{transform:translate(-50%,0)}
+  .toast.ok{background:var(--ok)} .toast.bad{background:var(--bad)}
+  .center{text-align:center}
+  .msg{padding:30px 10px;color:var(--muted)}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="logo">قلب <span>المدينة</span></h1>
+    <p class="sub">بطاقة الوجبات</p>
+  </header>
+
+  <main class="card" id="app"><div class="msg center">جارِ التحميل…</div></main>
+  <footer id="foot"></footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const code = (params.get("c") || "").trim().toLowerCase();
+const PIN_KEY = "qalb_staff_pin";
+let pin = null; try { pin = localStorage.getItem(PIN_KEY); } catch(e) {}
+let state = { number:null, meals:null, active:true, expired:false };
+let undoTimer = null, confirmTimer = null, refillAmt = 5, busy = false;
+
+const ERR = {
+  BAD_PIN:"الرقم السري غير صحيح", LOCKED:"محاولات خاطئة كثيرة — انتظر 15 دقيقة",
+  NOT_FOUND:"هذه البطاقة غير موجودة", INACTIVE:"هذه البطاقة موقوفة",
+  EMPTY:"انتهت الوجبات في هذه البطاقة", EXPIRED:"انتهت صلاحية البطاقة (2 يناير)", BAD_AMOUNT:"عدد غير صالح", NET:"تعذّر الاتصال — تحقق من الإنترنت"
+};
+const ACT = { use:"خصم وجبة", undo:"إرجاع وجبة", refill:"تعبئة" };
+
+async function rpc(fn, body){
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method:"POST",
+      headers:Object.assign({ "Content-Type":"application/json", apikey:SUPABASE_KEY }, SUPABASE_KEY.startsWith("eyJ") ? { Authorization:`Bearer ${SUPABASE_KEY}` } : {}),
+      body: JSON.stringify(body)
+    });
+    if(!r.ok) return { ok:false, error:"NET" };
+    return await r.json();
+  }catch(e){ return { ok:false, error:"NET" }; }
+}
+
+function toast(text, kind=""){
+  const t = $("#toast"); t.textContent = text; t.className = `toast show ${kind}`;
+  clearTimeout(t._h); t._h = setTimeout(()=> t.className = "toast", 2600);
+}
+function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+function slots(n){
+  const total = Math.max(5, n);
+  let h = ""; for(let i=0;i<total;i++) h += `<div class="slot ${i<n?'full':''}"></div>`;
+  return h;
+}
+
+function render(){
+  const s = state, staff = !!pin, off = !s.active || s.expired;
+  $("#foot").innerHTML = staff
+    ? `وضع الموظف مفعّل على هذا الجهاز · <button class="link" onclick="logout()">خروج</button>`
+    : `<button class="link" onclick="showPin()">دخول الموظف</button>`;
+
+  $("#app").innerHTML = `
+    <div class="num">
+      <span>بطاقة رقم <b>${String(s.number).padStart(3,"0")}</b></span>
+      <span class="badge ${staff?'staff':''}">${staff?'موظف':'رصيدك'}</span>
+    </div>
+    <div class="count">
+      <div class="big" id="big">${s.meals}</div>
+      <div class="lbl">${s.meals===1?'وجبة متبقية':s.meals===2?'وجبتان متبقيتان':'وجبات متبقية'}</div>
+    </div>
+    <div class="slots">${slots(s.meals)}</div>
+    ${s.meals===0?`<div class="empty-msg">انتهت الوجبات${staff?' — يمكنك تعبئة البطاقة':''}</div>`:""}
+    ${!s.active?`<div class="empty-msg">البطاقة موقوفة</div>`:""}
+    ${s.expired?`<div class="empty-msg">انتهت صلاحية البطاقة في 2 يناير</div>`:`<p class="center" style="color:var(--muted);font-size:13px;margin:8px 0 0">صالحة حتى 2 يناير 2027</p>`}
+    ${staff ? `
+      <div class="actions">
+        <button class="primary" id="useBtn" ${s.meals<=0||off?'disabled':''} onclick="onUse()">خصم وجبة واحدة</button>
+        <div class="row">
+          <button class="ghost" id="undoBtn" onclick="act('undo')" ${off?'disabled':''}>↺ إرجاع وجبة</button>
+          <button class="ghost" onclick="toggleRefill()" ${off?'disabled':''}>تعبئة البطاقة</button>
+        </div>
+        <div class="refill" id="refill">
+          <p>تعبئة البطاقة بعدد وجبات:</p>
+          <div class="steps">
+            <button onclick="stepRefill(-1)">−</button><output id="amt">${refillAmt}</output><button onclick="stepRefill(1)">+</button>
+          </div>
+          <div class="actions"><button class="primary" style="font-size:18px;padding:14px" onclick="act('refill')">تأكيد التعبئة</button></div>
+        </div>
+        <button class="link" onclick="loadHistory()">آخر العمليات</button>
+        <div class="history" id="hist"></div>
+      </div>` : `<p class="center" style="color:var(--muted);margin:18px 0 0;font-size:14px">اعرض هذه البطاقة عند الطلب ليتم خصم الوجبة</p>`}
+  `;
+}
+
+function onUse(){
+  const b = $("#useBtn");
+  if(!b.classList.contains("confirm")){
+    b.classList.add("confirm"); b.textContent = "اضغط مرة ثانية للتأكيد";
+    vibrate(20);
+    clearTimeout(confirmTimer);
+    confirmTimer = setTimeout(()=>{ if(b.isConnected){ b.classList.remove("confirm"); b.textContent = "خصم وجبة واحدة"; } }, 3500);
+    return;
+  }
+  clearTimeout(confirmTimer);
+  act("use");
+}
+
+async function act(action){
+  if(busy) return; busy = true;
+  document.querySelectorAll("#app button").forEach(b=> b.disabled = true);
+  const res = await rpc("qalb_card_action", { p_code:code, p_pin:pin, p_action:action, p_meals:refillAmt });
+  busy = false;
+  if(res.ok){
+    state.meals = res.meals; render();
+    const big = $("#big"); big.classList.add("bump"); setTimeout(()=>big.classList.remove("bump"),180);
+    vibrate(action==="use"?[30,40,30]:40);
+    toast(action==="use" ? `تم الخصم ✓ — المتبقي ${res.meals}` : action==="undo" ? `تم الإرجاع — المتبقي ${res.meals}` : `تمت التعبئة — ${res.meals} وجبات`, "ok");
+  }else{
+    if(res.error==="BAD_PIN"){ logout(true); }
+    if(res.meals===0){ state.meals = 0; }
+    if(res.error==="EXPIRED"){ state.expired = true; }
+    render();
+    toast(ERR[res.error] || "حدث خطأ", "bad"); vibrate(200);
+  }
+}
+
+function toggleRefill(){ $("#refill").classList.toggle("open"); }
+function stepRefill(d){ refillAmt = Math.min(50, Math.max(1, refillAmt + d)); $("#amt").textContent = refillAmt; }
+
+async function loadHistory(){
+  const h = $("#hist");
+  if(h.classList.contains("open")){ h.classList.remove("open"); return; }
+  h.innerHTML = "…"; h.classList.add("open");
+  const res = await rpc("qalb_card_history", { p_code:code, p_pin:pin });
+  if(!res.ok){ h.innerHTML = ERR[res.error]||"خطأ"; return; }
+  if(!res.items.length){ h.innerHTML = "<div>لا توجد عمليات بعد</div>"; return; }
+  const f = new Intl.DateTimeFormat("ar-IQ",{dateStyle:"short",timeStyle:"short"});
+  h.innerHTML = res.items.map(i=>`<div><span>${ACT[i.action]||i.action} · المتبقي ${i.meals_after}</span><span>${f.format(new Date(i.at))}</span></div>`).join("");
+}
+
+function showPin(){
+  $("#app").innerHTML = `
+    <h2 class="center" style="margin:4px 0 4px;color:var(--wine)">دخول الموظف</h2>
+    <p class="center" style="margin:0 0 14px;color:var(--muted);font-size:14px">يُحفظ على هذا الجهاز فقط، فلا تُدخله على هاتف زبون</p>
+    <form class="pin" onsubmit="event.preventDefault();login()">
+      <input id="pinIn" type="password" inputmode="numeric" autocomplete="off" placeholder="••••••" required>
+      <button class="primary" type="submit">دخول</button>
+      <button class="link" type="button" onclick="${code?'render()':'home()'}">رجوع</button>
+    </form>`;
+  setTimeout(()=> $("#pinIn").focus(), 50);
+}
+
+async function login(){
+  const v = $("#pinIn").value.trim(); if(!v) return;
+  const res = await rpc("qalb_staff_login", { p_pin:v });
+  if(res.ok){
+    pin = v; try{ localStorage.setItem(PIN_KEY, v); }catch(e){}
+    toast("تم تفعيل وضع الموظف", "ok");
+    code ? render() : home();
+  }else{ toast(ERR[res.error]||"خطأ", "bad"); vibrate(200); $("#pinIn").select(); }
+}
+
+function logout(silent){
+  pin = null; try{ localStorage.removeItem(PIN_KEY); }catch(e){}
+  if(!silent){ toast("تم الخروج من وضع الموظف"); code ? render() : home(); }
+}
+
+function home(){
+  $("#app").innerHTML = `<div class="msg center">
+    ${pin ? "وضع الموظف مفعّل ✓<br>امسح بطاقة الزبون بكاميرا الهاتف لفتحها هنا." : "امسح الباركود الموجود على البطاقة بكاميرا الهاتف."}
+  </div>`;
+  $("#foot").innerHTML = pin
+    ? `<button class="link" onclick="logout()">خروج من وضع الموظف</button>`
+    : `<button class="link" onclick="showPin()">دخول الموظف</button>`;
+}
+
+async function init(){
+  if(!code){ home(); return; }
+  const res = await rpc("qalb_get_card", { p_code:code });
+  if(!res.ok){
+    $("#app").innerHTML = `<div class="msg center">${ERR[res.error]||"حدث خطأ"}<br><br><button class="ghost" onclick="init()">إعادة المحاولة</button></div>`;
+    return;
+  }
+  state = { number:res.number, meals:res.meals, active:res.active, expired:!!res.expired };
+  render();
+}
+init();
+</script>
+</body>
+</html>
